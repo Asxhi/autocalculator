@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Помощник по скупке мякоти</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 15px auto;
+      padding: 15px;
+      background-color: #f9f9f9;
+    }
+
+    .upload-section {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .upload-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .preview-img {
+      max-width: 100%;
+      margin-top: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+
+    .items-grid {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .item-card {
+      background: white;
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.2s;
+      width: 180px;
+    }
+    .item-card:hover {
+      transform: scale(1.02);
+    }
+    .item-icon {
+      width: 50px;
+      height: 50px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      margin: 0 auto 10px;
+    }
+    .item-name {
+      font-weight: bold;
+      text-align: center;
+      margin: 5px 0;
+    }
+    .item-price {
+      color: #2e7d32;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .input-section {
+      margin: 20px 0;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .btn-save { background-color: #1976d2; color: white; }
+    .btn-clear { background-color: #ff9800; color: white; }
+    .btn-edit { background-color: #ff9800; color: white; }
+
+    .preview-result {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .report-section {
+      margin-top: 25px;
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+    }
+    .period-header {
+      font-size: 1.1em;
+      margin: 12px 0 8px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    .summary {
+      margin-top: 8px;
+      font-weight: bold;
+    }
+    .item {
+      font-size: 0.92em;
+      padding: 4px 0;
+      color: #555;
+    }
+    .buy-item { color: #2e7d32; }
+
+    .clear-all-btn {
+      background-color: #f44336;
+      color: white;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+
+    .price-editor {
+      margin-top: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .price-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .price-label {
+      flex: 1;
+    }
+    .price-input {
+      width: 80px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🛒 Помощник по скупке мякоти</h1>
+
+  <!-- Загрузка скриншота -->
+  <div class="upload-section">
+    <label for="screenshotUpload" class="upload-btn">Загрузить скриншот</label>
+    <input type="file" id="screenshotUpload" accept="image/*" style="display:none;" onchange="loadScreenshot()">
+    <img id="screenshotPreview" class="preview-img" src="" alt="Превью скриншота" style="display:none;">
+  </div>
+
+  <!-- База предметов -->
+  <h2>Выбери тип мякоти:</h2>
+  <div class="items-grid" id="itemsGrid"></div>
+
+  <!-- Форма ввода количества и расчёта -->
+  <div class="input-section">
+    <div class="form-group">
+      <label>Выбранный тип:</label>
+      <select id="selectedItem" onchange="updatePreview()">
+        <option value="">— Выбери предмет —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Количество (например: 50):</label>
+      <input type="number" id="quantityInput" min="1" max="50" placeholder="Введите количество" oninput="updatePreview()">
+    </div>
+    <div class="preview-result" id="previewResult">Итого: 0.00</div>
+    <button class="btn btn-save" onclick="savePurchase()">✅ Добавить в отчёт</button>
+    <button class="btn btn-clear" onclick="clearForm()">Очистить форму</button>
+  </div>
+
+  <!-- Редактор цен -->
+  <div class="price-editor">
+    <h3>✏️ Настрой цены (один раз, можно менять)</h3>
+    <div id="priceEditorContainer"></div>
+    <button class="btn btn-edit" onclick="savePrices()">Сохранить цены</button>
+  </div>
+
+  <!-- Отчёт -->
+  <div class="report-section">
+    <h2>📊 История покупок</h2>
+    <div id="reportsContainer"></div>
+  </div>
+
+  <button class="clear-all-btn" onclick="clearAllData()">Очистить ВСЕ данные</button>
+
+  <script>
+    // База мякоти — цены задаются вручную
+    let meatItems = [
+      { id: 1, name: "Мякоть куборбуза", price: 150, color: "red", icon: "https://via.placeholder.com/50/ff0000/ffffff?text=M" },
+      { id: 2, name: "Мякоть сластены", price: 120, color: "blue", icon: "https://via.placeholder.com/50/0000ff/ffffff?text=S" },
+      { id: 3, name: "Мякоть лимонника", price: 80, color: "yellow", icon: "https://via.placeholder.com/50/ffff00/000000?text=L" },
+      { id: 4, name: "Мякоть солевика", price: 100, color: "white", icon: "https://via.placeholder.com/50/f0f0f0/000000?text=V" }
+    ];
+
+    // Загрузка данных
+    let purchases = JSON.parse(localStorage.getItem('meatPurchases')) || [];
+
+    // Отображение предметов
+    function renderItems() {
+      const grid = document.getElementById('itemsGrid');
+      let html = '';
+      meatItems.forEach(item => {
+        html += `
+          <div class="item-card" onclick="selectItem(${item.id})">
+            <div class="item-icon" style="background-image: url('${item.icon}');"></div>
+            <div class="item-name">${item.name}</div>
+            <div class="item-price">${item.price} r</div>
+          </div>
+        `;
+      });
+      grid.innerHTML = html;
+
+      // Обновляем выпадающий список
+      const select = document.getElementById('selectedItem');
+      select.innerHTML = '<option value="">— Выбери предмет —</option>';
+      meatItems.forEach(item => {
+        select.innerHTML += `<option value="${item.id}">${item.name} (${item.price} r)</option>`;
+      });
+    }
+
+    // Редактор цен
+    function renderPriceEditor() {
+      const container = document.getElementById('priceEditorContainer');
+      let html = '';
+      meatItems.forEach(item => {
+        html += `
+          <div class="price-row">
+            <span class="price-label">${item.name}:</span>
+            <input type="number" class="price-input" data-id="${item.id}" value="${item.price}" step="1" min="0">
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    // Сохранение цен
+    function savePrices() {
+      const inputs = document.querySelectorAll('.price-input');
+      inputs.forEach(input => {
+        const id = parseInt(input.dataset.id);
+        const price = parseFloat(input.value) || 0;
+        const item = meatItems.find(i => i.id === id);
+        if (item) item.price = price;
+      });
+      localStorage.setItem('meatItems', JSON.stringify(meatItems));
+      renderItems();
+      alert("Цены сохранены!");
+    }
+
+    // Выбор предмета
+    function selectItem(id) {
+      const item = meatItems.find(i => i.id === id);
+      if (item) {
+        document.getElementById('selectedItem').value = id;
+        updatePreview();
+      }
+    }
+
+    // Предпросмотр суммы
+    function updatePreview() {
+      const itemId = parseInt(document.getElementById('selectedItem').value);
+      const qty = parseInt(document.getElementById('quantityInput').value) || 0;
+
+      if (!itemId || qty < 1) {
+        document.getElementById('previewResult').textContent = 'Итого: 0.00';
+        return;
+      }
+
+      const item = meatItems.find(i => i.id === itemId);
+      const total = item.price * qty;
+      document.getElementById('previewResult').textContent = `Итого: ${total.toFixed(0)} r`;
+    }
+
+    // Сохранение покупки
+    function savePurchase() {
+      const itemId = parseInt(document.getElementById('selectedItem').value);
+      const qty = parseInt(document.getElementById('quantityInput').value);
+
+      if (!itemId || qty < 1) {
+        alert("Выберите предмет и укажите количество.");
+        return;
+      }
+
+      const item = meatItems.find(i => i.id === itemId);
+      const total = item.price * qty;
+
+      purchases.push({
+        name: item.name,
+        price: item.price,
+        quantity: qty,
+        total,
+        date: new Date().toISOString().split('T')[0],
+        timestamp: new Date().toISOString()
+      });
+
+      localStorage.setItem('meatPurchases', JSON.stringify(purchases));
+      clearForm();
+      renderReport();
+    }
+
+    // Очистка формы
+    function clearForm() {
+      document.getElementById('selectedItem').value = '';
+      document.getElementById('quantityInput').value = '';
+      updatePreview();
+    }
+
+    // Загрузка скриншота
+    function loadScreenshot() {
+      const input = document.getElementById('screenshotUpload');
+      const preview = document.getElementById('screenshotPreview');
+
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    // Отчёт
+    function renderReport() {
+      const container = document.getElementById('reportsContainer');
+      const today = new Date().toISOString().split('T')[0];
+
+      let spent = 0;
+      let itemsHtml = '';
+
+      purchases.forEach(p => {
+        spent += p.total;
+        itemsHtml += `<div class="item buy-item">– ${p.name} ×${p.quantity} по ${p.price} = ${p.total} r (${p.date})</div>`;
+      });
+
+      container.innerHTML = `
+        <div class="period-header">Все покупки</div>
+        <div>${itemsHtml}</div>
+        <div class="summary">Общая сумма: <strong>${spent.toFixed(0)} r</strong></div>
+      `;
+    }
+
+    // Очистка всех данных
+    function clearAllData() {
+      if (confirm("Очистить ВСЕ данные?")) {
+        purchases = [];
+        localStorage.removeItem('meatPurchases');
+        renderReport();
+      }
+    }
+
+    // Инициализация
+    // Загружаем сохранённые цены, если есть
+    const savedItems = JSON.parse(localStorage.getItem('meatItems'));
+    if (savedItems) meatItems = savedItems;
+
+    renderItems();
+    renderPriceEditor();
+    renderReport();
+  </script>
+
+</body>
+</html>
